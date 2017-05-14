@@ -1,6 +1,6 @@
 swagger: "2.0"
 info:
-  description: "This is a sample server Petstore server.  You can find out more about     Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).      For this sample, you can use the api key `special-key` to test the authorization     filters."
+  description: "API used by mobile apps"
   version: "1.0.0"
   title: "Kino API"
   termsOfService: "http://trionic.cz/terms/"
@@ -13,24 +13,21 @@ host: "api.trionic.cz"
 basePath: "/kino/v1"
 tags:
 - name: "cinema"
-  description: "API for Kino mobile application"
+  description: "Cinema operations"
   externalDocs:
     description: "Find out more"
     url: "http://trionic.cz"
-- name: "store"
-  description: "Access to Petstore orders"
+- name: "movie"
+  description: "Access to movies"
 - name: "user"
   description: "Operations about user"
-  externalDocs:
-    description: "Find out more about our store"
-    url: "http://trionic.cz"
 schemes:
 - "https"
 paths:
   /cinema:
     post:
       tags:
-      - "pet"
+      - "cinema"
       summary: "Add a new cinema"
       description: ""
       operationId: "addCinema"
@@ -46,204 +43,210 @@ paths:
         schema: 
           $ref: "#/definitions/Cinema"
       responses:
+        200:
+          description: "Data stored"
+        401:
+          description: "Unauthorized"
         405:
           description: "Invalid input"
       security:
       - kino_auth:
-        - "write:cinemas"
-        - "read:cinemas"
+        - "write:cinema"
+        - "read:cinema"
     put:
       tags:
-      - "pet"
-      summary: "Update an existing pet"
+      - "cinema"
+      summary: "Update an existing cinema"
       description: ""
-      operationId: "updatePet"
+      operationId: "updateCinema"
       consumes:
       - "application/json"
-      - "application/xml"
       produces:
-      - "application/xml"
       - "application/json"
       parameters:
       - in: "body"
         name: "body"
-        description: "Pet object that needs to be added to the store"
+        description: "Cinema object that needs to be updated"
         required: true
         schema:
           $ref: "#/definitions/Cinema"
       responses:
+        200:
+          description: "Data updated"
         400:
           description: "Invalid ID supplied"
+        401:
+          description: "Unauthorized"
         404:
-          description: "Pet not found"
+          description: "Cinema not found"
         405:
           description: "Validation exception"
       security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /pet/findByStatus:
+      - kino_auth:
+        - "write:cinema"
+        - "read:cinema"
+  /cinema/findByLocation:
     get:
       tags:
-      - "pet"
-      summary: "Finds Pets by status"
-      description: "Multiple status values can be provided with comma separated strings"
-      operationId: "findPetsByStatus"
+      - "cinema"
+      summary: "Find cinemas by location"
+      description: "Find all cinemas in circle specified by it's center point coordinates (latitude, longitude) and radius"
+      operationId: "findCinemasByLocation"
       produces:
-      - "application/xml"
       - "application/json"
       parameters:
-      - name: "status"
+      - name: "lat"
         in: "query"
-        description: "Status values that need to be considered for filter"
+        description: "Latitude of the circle center point"
         required: true
-        type: "array"
-        items:
-          type: "string"
-          enum:
-          - "available"
-          - "pending"
-          - "sold"
-          default: "available"
+        type: "number"
+        format: "float"
+        collectionFormat: "multi"
+      - name: "lon"
+        in: "query"
+        description: "Longitude of the circle center point"
+        required: true
+        type: "number"
+        format: "float"
+        collectionFormat: "multi"
+      - name: "radius"
+        in: "query"
+        description: "Radius of the circle [km]"
+        required: false
+        type: "number"
+        format: "float"
+        default: 25.0
         collectionFormat: "multi"
       responses:
         200:
-          description: "successful operation"
+          description: "Success"
           schema:
             type: "array"
             items:
               $ref: "#/definitions/Cinema"
         400:
-          description: "Invalid status value"
+          description: "Invalid coordinates"
+        401:
+          description: "Unauthorized"
       security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /pet/findByTags:
+      - kino_auth:
+        - "read:cinema"
+  /cinema/{cinemaId}:
     get:
       tags:
-      - "pet"
-      summary: "Finds Pets by tags"
-      description: "Muliple tags can be provided with comma separated strings. Use         tag1, tag2, tag3 for testing."
-      operationId: "findPetsByTags"
+      - "cinema"
+      summary: "Find cinema by ID"
+      description: "Returns a single cinema"
+      operationId: "getCinemaById"
       produces:
-      - "application/xml"
       - "application/json"
       parameters:
-      - name: "tags"
-        in: "query"
-        description: "Tags to filter by"
-        required: true
-        type: "array"
-        items:
-          type: "string"
-        collectionFormat: "multi"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Cinema"
-        400:
-          description: "Invalid tag value"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-      deprecated: true
-  /pet/{petId}:
-    get:
-      tags:
-      - "pet"
-      summary: "Find pet by ID"
-      description: "Returns a single pet"
-      operationId: "getPetById"
-      produces:
-      - "application/xml"
-      - "application/json"
-      parameters:
-      - name: "petId"
+      - name: "cinemaId"
         in: "path"
-        description: "ID of pet to return"
+        description: "ID of cinema to return"
         required: true
         type: "integer"
         format: "int64"
       responses:
         200:
-          description: "successful operation"
+          description: "Success"
           schema:
             $ref: "#/definitions/Cinema"
         400:
           description: "Invalid ID supplied"
+        401:
+          description: "Unauthorized"
         404:
-          description: "Pet not found"
+          description: "Cinema not found"
       security:
       - api_key: []
     post:
       tags:
-      - "pet"
-      summary: "Updates a pet in the store with form data"
+      - "cinema"
+      summary: "Updates a cinema with form data"
       description: ""
-      operationId: "updatePetWithForm"
+      operationId: "updateCinemaWithForm"
       consumes:
       - "application/x-www-form-urlencoded"
       produces:
-      - "application/xml"
       - "application/json"
       parameters:
-      - name: "petId"
+      - name: "cinemaId"
         in: "path"
-        description: "ID of pet that needs to be updated"
+        description: "ID of cinema that needs to be updated"
         required: true
         type: "integer"
         format: "int64"
       - name: "name"
         in: "formData"
-        description: "Updated name of the pet"
+        description: "Updated name of the cinema"
         required: false
         type: "string"
-      - name: "status"
+      - name: "address"
         in: "formData"
-        description: "Updated status of the pet"
+        description: "Updated address of the cinema"
         required: false
         type: "string"
+      - name: "latitude"
+        in: "formData"
+        description: "Updated latitude coordinate"
+        required: false
+        type: "number"
+        format: "float"
+      - name: "longitude"
+        in: "formData"
+        description: "Updated longitude coordinate"
+        required: false
+        type: "number"
+        format: "float"
+      - name: "openingHours"
+        in: "formData"
+        description: "Updated opening hours of the cinema"
+        required: false
+        type: "string"        
       responses:
+        200:
+          description: "Success"
+        401:
+          description: "Unauthorized"
         405:
           description: "Invalid input"
       security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
+      - kino_auth:
+        - "read:cinema"
+        - "write:cinema"
     delete:
       tags:
-      - "pet"
-      summary: "Deletes a pet"
+      - "cinema"
+      summary: "Deletes a cinema"
       description: ""
-      operationId: "deletePet"
+      operationId: "deleteCinema"
       produces:
-      - "application/xml"
       - "application/json"
       parameters:
       - name: "api_key"
         in: "header"
         required: false
         type: "string"
-      - name: "petId"
+      - name: "cinemaId"
         in: "path"
-        description: "Pet id to delete"
+        description: "Cinema id to delete"
         required: true
         type: "integer"
         format: "int64"
       responses:
+        200:
+          description: "Success"
         400:
           description: "Invalid ID supplied"
+        401:
+          description: "Unauthorized"
         404:
-          description: "Pet not found"
+          description: "Cinema not found"
       security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
+      - kino_auth:
+        - "read:cinema"
+        - "write:cinema"
   /pet/{petId}/uploadImage:
     post:
       tags:
@@ -278,10 +281,10 @@ paths:
           schema:
             $ref: "#/definitions/ApiResponse"
       security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /store/inventory:
+      - kino_auth:
+        - "read:cinema"
+        - "write:cinema"
+  /movie/inventory:
     get:
       tags:
       - "store"
@@ -317,12 +320,12 @@ paths:
         description: "order placed for purchasing the pet"
         required: true
         schema:
-          $ref: "#/definitions/Order"
+          $ref: "#/definitions/Image"
       responses:
         200:
           description: "successful operation"
           schema:
-            $ref: "#/definitions/Order"
+            $ref: "#/definitions/Image"
         400:
           description: "Invalid Order"
   /store/order/{orderId}:
@@ -348,7 +351,7 @@ paths:
         200:
           description: "successful operation"
           schema:
-            $ref: "#/definitions/Order"
+            $ref: "#/definitions/Image"
         400:
           description: "Invalid ID supplied"
         404:
@@ -562,47 +565,71 @@ paths:
         404:
           description: "User not found"
 securityDefinitions:
-  petstore_auth:
+  kino_auth:
     type: "oauth2"
     authorizationUrl: "http://trionic.cz/oauth/dialog"
     flow: "implicit"
     scopes:
-      write:pets: "modify pets in your account"
-      read:pets: "read your pets"
+      write:cinema: "modify cinema information"
+      read:cinema: "read cinema list"
   api_key:
     type: "apiKey"
     name: "api_key"
     in: "header"
 definitions:
-  Order:
+  Image:
     type: "object"
+    required:
+      - "name"
     properties:
       id:
         type: "integer"
         format: "int64"
-      petId:
-        type: "integer"
-        format: "int64"
-      quantity:
+      name:
+        type: "string"
+      dataSize:
         type: "integer"
         format: "int32"
-      shipDate:
+        description: "data size in bytes"
+      data:
         type: "string"
-        format: "date-time"
-      status:
+        format: "byte"
+        description: "base64 encoded image data"
+      url:
         type: "string"
-        description: "Order Status"
-        enum:
-        - "placed"
-        - "approved"
-        - "delivered"
-      complete:
-        type: "boolean"
-        default: false
-    xml:
-      name: "Order"
+        description: "URL of the image file, optional"
+  Cinema:
+    type: "object"
+    required:
+    - "name"
+    - "latitude"
+    - "longitude"
+    - "address"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      name:
+        type: "string"
+        example: "Kino Galaxie"
+      address:
+        type: "string"
+        example: "Horní Dolní 12, 558 05 Liptákov"        
+      latitude:
+        type: "number"
+        format: "float"
+      longitude:
+        type: "number"
+        format: "float"
+      openingHours:
+        type: "string"
+        example: "<b>Mo:</b> 10AM - 12PM<br /><b>Tue:</b> 10AM - 12PM<br />"
   Movie:
     type: "object"
+    required:
+      - "origName"
+      - "genres"
+      - "description"
     properties:
       id:
         type: "integer"
@@ -656,8 +683,41 @@ definitions:
         type: "integer"
         format: "int32"
         description: "movie length [minutes]"
+  Projection:
+    type: "object"
+    description: "movie projection info"
+    required:
+      - "movie"
+      - "time"
+      - "lang"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      movie:
+        type: "integer"
+        format: "int64"
+        description: "movie identificator"
+      time:
+        type: "integer"
+        format: "int64"
+        description: "projection time in unix timestamp format"
+      lang:
+        type: "string"
+        description: "movie language"
+        example: "en"
+      subtitles:
+        type: "string"
+        description: "subtitles language, can be empty"
+        example: "cs"
+      3d:
+        type: "boolean"
+        description: "true if movie is in 3D"
   User:
     type: "object"
+    required:
+      - "username"
+      - "password"
     properties:
       id:
         type: "integer"
@@ -668,6 +728,7 @@ definitions:
         type: "string"
       password:
         type: "string"
+        format: "password"
   TrackingValue:
     type: "object"
     properties:
@@ -683,29 +744,6 @@ definitions:
         format: "int64"
         example: "1494782679"
         description: "Unix timestamp"
-    xml:
-      name: "Tag"
-  Cinema:
-    type: "object"
-    required:
-    - "name"
-    - "latitude"
-    - "longitude"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      name:
-        type: "string"
-        example: "Kino Galaxie"
-      latitude:
-        type: "number"
-        format: "float"
-      longitude:
-        type: "number"
-        format: "float"
-      openingHours:
-        type: "string"
   ApiResponse:
     type: "object"
     properties:
