@@ -247,24 +247,231 @@ paths:
       - kino_auth:
         - "read:cinema"
         - "write:cinema"
-  /pet/{petId}/uploadImage:
+  /movie:
     post:
       tags:
-      - "pet"
-      summary: "uploads an image"
+      - "movie"
+      summary: "Add a new movie"
       description: ""
-      operationId: "uploadFile"
+      operationId: "addMovie"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Movie object that needs to be added to the database"
+        required: true
+        schema: 
+          $ref: "#/definitions/Movie"
+      responses:
+        200:
+          description: "Data stored"
+        401:
+          description: "Unauthorized"
+        405:
+          description: "Invalid input"
+      security:
+      - kino_auth:
+        - "write:movie"
+    put:
+      tags:
+      - "movie"
+      summary: "Update an existing movie"
+      description: ""
+      operationId: "updateMovie"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Movie object that needs to be updated"
+        required: true
+        schema:
+          $ref: "#/definitions/Movie"
+      responses:
+        200:
+          description: "Data updated"
+        400:
+          description: "Invalid ID supplied"
+        401:
+          description: "Unauthorized"
+        404:
+          description: "Movie not found"
+        405:
+          description: "Validation exception"
+      security:
+      - kino_auth:
+        - "write:movie"
+        - "read:movie"
+  /movie/findByTime:
+    get:
+      tags:
+      - "movie"
+      summary: "Find movies by time"
+      description: "Find N movies with premiere after given time"
+      operationId: "findMoviesByTime"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "time"
+        in: "query"
+        description: "Start of time interval"
+        required: true
+        type: "integer"
+        format: "int64"
+      - name: "limit"
+        in: "query"
+        description: "Maximum number of returned movies"
+        required: false
+        type: "integer"
+        format: "int32"
+        default: 50
+      responses:
+        200:
+          description: "Success"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Movie"
+        400:
+          description: "Invalid time"
+        401:
+          description: "Unauthorized"
+      security:
+      - kino_auth:
+        - "read:movie"
+  /movie/{movieId}:
+    get:
+      tags:
+      - "movie"
+      summary: "Find movie by ID"
+      description: "Returns a single movie"
+      operationId: "getMovieById"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "movieId"
+        in: "path"
+        description: "ID of movie to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "Success"
+          schema:
+            $ref: "#/definitions/Movie"
+        400:
+          description: "Invalid ID supplied"
+        401:
+          description: "Unauthorized"
+        404:
+          description: "Movie not found"
+      security:
+      - kino_auth:
+        - "read:movie"
+    post:
+      tags:
+      - "movie"
+      summary: "Updates a movie with form data"
+      description: ""
+      operationId: "updateMovieWithForm"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "movieId"
+        in: "path"
+        description: "ID of movie that needs to be updated"
+        required: true
+        type: "integer"
+        format: "int64"
+      - name: "name"
+        in: "formData"
+        description: "Updated name of the cinema"
+        required: false
+        type: "string"
+      - name: "address"
+        in: "formData"
+        description: "Updated address of the cinema"
+        required: false
+        type: "string"
+      - name: "latitude"
+        in: "formData"
+        description: "Updated latitude coordinate"
+        required: false
+        type: "number"
+        format: "float"
+      - name: "longitude"
+        in: "formData"
+        description: "Updated longitude coordinate"
+        required: false
+        type: "number"
+        format: "float"
+      - name: "openingHours"
+        in: "formData"
+        description: "Updated opening hours of the cinema"
+        required: false
+        type: "string"        
+      responses:
+        200:
+          description: "Success"
+        401:
+          description: "Unauthorized"
+        405:
+          description: "Invalid input"
+      security:
+      - kino_auth:
+        - "read:movie"
+        - "write:movie"
+    delete:
+      tags:
+      - "movie"
+      summary: "Deletes a movie"
+      description: ""
+      operationId: "deleteMovie"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "api_key"
+        in: "header"
+        required: false
+        type: "string"
+      - name: "movieId"
+        in: "path"
+        description: "Movie id to delete"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "Success"
+        400:
+          description: "Invalid ID supplied"
+        401:
+          description: "Unauthorized"
+        404:
+          description: "Movie not found"
+      security:
+      - kino_auth:
+        - "write:movie"
+  /movie/uploadPoster:
+    post:
+      tags:
+      - "movie"
+      summary: "uploads an poster image"
+      description: ""
+      operationId: "uploadPoster"
       consumes:
       - "multipart/form-data"
       produces:
       - "application/json"
       parameters:
-      - name: "petId"
-        in: "path"
-        description: "ID of pet to update"
-        required: true
-        type: "integer"
-        format: "int64"
       - name: "additionalMetadata"
         in: "formData"
         description: "Additional data to pass to server"
@@ -277,107 +484,12 @@ paths:
         type: "file"
       responses:
         200:
-          description: "successful operation"
+          description: "Success"
           schema:
             $ref: "#/definitions/ApiResponse"
       security:
       - kino_auth:
-        - "read:cinema"
-        - "write:cinema"
-  /movie/inventory:
-    get:
-      tags:
-      - "store"
-      summary: "Returns pet inventories by status"
-      description: "Returns a map of status codes to quantities"
-      operationId: "getInventory"
-      produces:
-      - "application/json"
-      parameters: []
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "integer"
-              format: "int32"
-      security:
-      - api_key: []
-  /store/order:
-    post:
-      tags:
-      - "store"
-      summary: "Place an order for a pet"
-      description: ""
-      operationId: "placeOrder"
-      produces:
-      - "application/xml"
-      - "application/json"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "order placed for purchasing the pet"
-        required: true
-        schema:
-          $ref: "#/definitions/Image"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Image"
-        400:
-          description: "Invalid Order"
-  /store/order/{orderId}:
-    get:
-      tags:
-      - "store"
-      summary: "Find purchase order by ID"
-      description: "For valid response try integer IDs with value >= 1 and <= 10.         Other values will generated exceptions"
-      operationId: "getOrderById"
-      produces:
-      - "application/xml"
-      - "application/json"
-      parameters:
-      - name: "orderId"
-        in: "path"
-        description: "ID of pet that needs to be fetched"
-        required: true
-        type: "integer"
-        maximum: 10.0
-        minimum: 1.0
-        format: "int64"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Image"
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Order not found"
-    delete:
-      tags:
-      - "store"
-      summary: "Delete purchase order by ID"
-      description: "For valid response try integer IDs with positive integer value.         Negative or non-integer values will generate API errors"
-      operationId: "deleteOrder"
-      produces:
-      - "application/xml"
-      - "application/json"
-      parameters:
-      - name: "orderId"
-        in: "path"
-        description: "ID of the order that needs to be deleted"
-        required: true
-        type: "integer"
-        minimum: 1.0
-        format: "int64"
-      responses:
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Order not found"
+        - "write:image"
   /user:
     post:
       tags:
@@ -572,6 +684,9 @@ securityDefinitions:
     scopes:
       write:cinema: "modify cinema information"
       read:cinema: "read cinema list"
+      write:movie: "update movie information"
+      read:movie: "read movie list"
+      write:image: "upload image"
   api_key:
     type: "apiKey"
     name: "api_key"
