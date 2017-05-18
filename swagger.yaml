@@ -676,6 +676,31 @@ paths:
           description: "Invalid username supplied"
         404:
           description: "User not found"
+  /tracking/store:
+    post:
+      summary: "store tracking values"
+      description: ""
+      operationId: "storeValues"
+      consumes:
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "List of tracking values"
+        required: true
+        schema:
+          type: "array"
+          items:
+            $ref: "#/definitions/TrackingValue"
+      responses:
+        200:
+          description: "Success"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+      security:
+      - api_key: []
 securityDefinitions:
   kino_auth:
     type: "oauth2"
@@ -853,6 +878,8 @@ definitions:
       name:
         type: "string"
       value:
+        type: "string"
+      deviceId:
         type: "string"
       timestamp:
         type: "integer"
