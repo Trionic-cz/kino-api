@@ -21,6 +21,8 @@ tags:
   description: "Access to movies"
 - name: "user"
   description: "Operations about user"
+- name: "projections"
+  description: "Operations about movie projection times"
 schemes:
 - "https"
 paths:
@@ -391,33 +393,76 @@ paths:
         required: true
         type: "integer"
         format: "int64"
-      - name: "name"
+      - name: "localName"
         in: "formData"
-        description: "Updated name of the cinema"
+        description: "Updated localized movie name"
         required: false
         type: "string"
-      - name: "address"
+      - name: "origName"
         in: "formData"
-        description: "Updated address of the cinema"
         required: false
         type: "string"
-      - name: "latitude"
+        description: "Original movie name"
+      - name: "engName"
         in: "formData"
-        description: "Updated latitude coordinate"
+        required: false
+        type: "string"
+        description: "Movie name localized to english"
+      - name: "releaseDate"
+        in: "formData"
+        required: false
+        type: "integer"
+        format: "int64"
+        description: "Release date in UNIX Timestamp format. Hour, minute and seconds are zeros"
+      - name: "releaseDateUS"
+        in: "formData"
+        required: false
+        type: "integer"
+        format: "int64"
+        description: "USA Release date in UNIX Timestamp format. Hour, minute and seconds are zeros"
+      - name: "ratingCsfd"
+        in: "formData"
+        required: false
+        type: "integer"
+        format: "int32"
+        description: "ČSFD rating, percent"
+      - name: "ratingImdb"
+        in: "formData"
         required: false
         type: "number"
         format: "float"
-      - name: "longitude"
+        description: "IMDb rating, one decimal place"
+      - name: "posterThumbnail"
         in: "formData"
-        description: "Updated longitude coordinate"
         required: false
-        type: "number"
-        format: "float"
-      - name: "openingHours"
+        type: "string"
+        format: "byte"
+        description: "base64 encoded image"
+      - name: "posters"
         in: "formData"
-        description: "Updated opening hours of the cinema"
         required: false
-        type: "string"        
+        type: "array"
+        description: "image identificators"
+        items:
+          type: "integer"
+          format: "int64"
+      - name: "genres"
+        description: "4 genres at most"
+        in: "formData"
+        required: false
+        type: "array"
+        items:
+          type: "string"
+      - name: "description"
+        in: "formData"
+        required: false
+        type: "string"
+      - name: "length"
+        in: "formData"
+        required: false
+        type: "integer"
+        format: "int32"
+        description: "movie length [minutes]"
       responses:
         200:
           description: "Success"
@@ -460,7 +505,7 @@ paths:
       security:
       - kino_auth:
         - "write:movie"
-  /movie/uploadPoster:
+  /movie/{movieId}/uploadPoster:
     post:
       tags:
       - "movie"
@@ -472,6 +517,12 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "movieId"
+        in: "path"
+        description: "ID of movie to assign poster to"
+        required: true
+        type: "integer"
+        format: "int64"
       - name: "additionalMetadata"
         in: "formData"
         description: "Additional data to pass to server"
@@ -489,7 +540,226 @@ paths:
             $ref: "#/definitions/ApiResponse"
       security:
       - kino_auth:
-        - "write:image"
+        - "write:movie"
+  /projection:
+    post:
+      tags:
+      - "projection"
+      summary: "Add a new projection"
+      description: ""
+      operationId: "addProjection"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Projection object that needs to be added to the database"
+        required: true
+        schema: 
+          $ref: "#/definitions/Projection"
+      responses:
+        200:
+          description: "Data stored"
+        401:
+          description: "Unauthorized"
+        405:
+          description: "Invalid input"
+      security:
+      - kino_auth:
+        - "write:projection"
+    put:
+      tags:
+      - "projection"
+      summary: "Update an existing projection"
+      description: ""
+      operationId: "updateProjection"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Projection object that needs to be updated"
+        required: true
+        schema:
+          $ref: "#/definitions/Projection"
+      responses:
+        200:
+          description: "Data updated"
+        400:
+          description: "Invalid ID supplied"
+        401:
+          description: "Unauthorized"
+        404:
+          description: "Projection not found"
+        405:
+          description: "Validation exception"
+      security:
+      - kino_auth:
+        - "write:projection"
+        - "read:projection"
+  /projection/findByTime:
+    get:
+      tags:
+      - "projection"
+      summary: "Find projections by time"
+      description: "Find N projections starting after given time"
+      operationId: "findProjectionsByTime"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "time"
+        in: "query"
+        description: "Start of time interval"
+        required: true
+        type: "integer"
+        format: "int64"
+      - name: "limit"
+        in: "query"
+        description: "Maximum number of returned projections"
+        required: false
+        type: "integer"
+        format: "int32"
+        default: 50
+      responses:
+        200:
+          description: "Success"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Projection"
+        400:
+          description: "Invalid time"
+        401:
+          description: "Unauthorized"
+      security:
+      - kino_auth:
+        - "read:projection"
+  /projection/{projectionId}:
+    get:
+      tags:
+      - "projection"
+      summary: "Find projection by ID"
+      description: "Returns a single projection"
+      operationId: "getProjectionById"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "projectionId"
+        in: "path"
+        description: "ID of projection to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "Success"
+          schema:
+            $ref: "#/definitions/Projection"
+        400:
+          description: "Invalid ID supplied"
+        401:
+          description: "Unauthorized"
+        404:
+          description: "Projection not found"
+      security:
+      - kino_auth:
+        - "read:projection"
+    post:
+      tags:
+      - "projection"
+      summary: "Updates a projection with form data"
+      description: ""
+      operationId: "updateProjectionWithForm"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "projectionId"
+        in: "path"
+        description: "ID of projection that needs to be updated"
+        required: true
+        type: "integer"
+        format: "int64"
+      - name: "movie"
+        in: "formData"
+        description: "Updated movie id"
+        required: false
+        type: "integer"
+        format: "int64"
+      - name: "cinema"
+        in: "formData"
+        description: "Updated cinema id"
+        required: false
+        type: "integer"
+        format: "int64"
+      - name: "time"
+        in: "formData"
+        description: "Updated projection time in UTC unix timestamp"
+        required: false
+        type: "integer"
+        format: "int64"
+      - name: "lang"
+        in: "formData"
+        description: "Updated movie language"
+        required: false
+        type: "string"
+      - name: "subtitles"
+        in: "formData"
+        description: "Updated subtitles language, can be empty string"
+        required: false
+        type: "string"
+      - name: "3d"
+        in: "formData"
+        description: "Updated opening hours of the cinema"
+        required: false
+        type: "boolean"
+      responses:
+        200:
+          description: "Success"
+        401:
+          description: "Unauthorized"
+        405:
+          description: "Invalid input"
+      security:
+      - kino_auth:
+        - "read:projection"
+        - "write:projection"
+    delete:
+      tags:
+      - "projection"
+      summary: "Deletes a projection"
+      description: ""
+      operationId: "deleteProjection"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "api_key"
+        in: "header"
+        required: false
+        type: "string"
+      - name: "projectionId"
+        in: "path"
+        description: "Projection id to delete"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "Success"
+        400:
+          description: "Invalid ID supplied"
+        401:
+          description: "Unauthorized"
+        404:
+          description: "Projection not found"
+      security:
+      - kino_auth:
+        - "write:projection"
   /user:
     post:
       tags:
@@ -498,7 +768,6 @@ paths:
       description: "This can only be done by the logged in user."
       operationId: "createUser"
       produces:
-      - "application/xml"
       - "application/json"
       parameters:
       - in: "body"
@@ -518,29 +787,6 @@ paths:
       description: ""
       operationId: "createUsersWithArrayInput"
       produces:
-      - "application/xml"
-      - "application/json"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "List of user object"
-        required: true
-        schema:
-          type: "array"
-          items:
-            $ref: "#/definitions/User"
-      responses:
-        default:
-          description: "successful operation"
-  /user/createWithList:
-    post:
-      tags:
-      - "user"
-      summary: "Creates list of users with given input array"
-      description: ""
-      operationId: "createUsersWithListInput"
-      produces:
-      - "application/xml"
       - "application/json"
       parameters:
       - in: "body"
@@ -562,7 +808,6 @@ paths:
       description: ""
       operationId: "loginUser"
       produces:
-      - "application/xml"
       - "application/json"
       parameters:
       - name: "username"
@@ -599,7 +844,6 @@ paths:
       description: ""
       operationId: "logoutUser"
       produces:
-      - "application/xml"
       - "application/json"
       parameters: []
       responses:
@@ -613,7 +857,6 @@ paths:
       description: ""
       operationId: "getUserByName"
       produces:
-      - "application/xml"
       - "application/json"
       parameters:
       - name: "username"
@@ -637,7 +880,6 @@ paths:
       description: "This can only be done by the logged in user."
       operationId: "updateUser"
       produces:
-      - "application/xml"
       - "application/json"
       parameters:
       - name: "username"
@@ -663,7 +905,6 @@ paths:
       description: "This can only be done by the logged in user."
       operationId: "deleteUser"
       produces:
-      - "application/xml"
       - "application/json"
       parameters:
       - name: "username"
@@ -711,6 +952,8 @@ securityDefinitions:
       read:cinema: "read cinema list"
       write:movie: "update movie information"
       read:movie: "read movie list"
+      write:projection: "update projection information"
+      read:projection: "read projection list"
       write:image: "upload image"
   api_key:
     type: "apiKey"
@@ -838,6 +1081,10 @@ definitions:
         type: "integer"
         format: "int64"
         description: "movie identificator"
+      cinema:
+        type: "integer"
+        format: "int64"
+        description: "cinema identificator"
       time:
         type: "integer"
         format: "int64"
