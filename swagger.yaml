@@ -23,6 +23,8 @@ tags:
   description: "Operations about user"
 - name: "projections"
   description: "Operations about movie projection times"
+- name: "proster"
+  description: "Poster manipulation"
 schemes:
 - "https"
 paths:
@@ -38,6 +40,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - in: "body"
         name: "body"
         description: "Cinema object that needs to be added to the database"
@@ -55,6 +61,7 @@ paths:
       - kino_auth:
         - "write:cinema"
         - "read:cinema"
+      - api_key: []
     put:
       tags:
       - "cinema"
@@ -66,6 +73,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - in: "body"
         name: "body"
         description: "Cinema object that needs to be updated"
@@ -87,6 +98,7 @@ paths:
       - kino_auth:
         - "write:cinema"
         - "read:cinema"
+      - api_key: []
   /cinema/findByLocation:
     get:
       tags:
@@ -97,6 +109,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - name: "lat"
         in: "query"
         description: "Latitude of the circle center point"
@@ -131,8 +147,7 @@ paths:
         401:
           description: "Unauthorized"
       security:
-      - kino_auth:
-        - "read:cinema"
+      - api_key: []
   /cinema/{cinemaId}:
     get:
       tags:
@@ -143,6 +158,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - name: "cinemaId"
         in: "path"
         description: "ID of cinema to return"
@@ -173,6 +192,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - name: "cinemaId"
         in: "path"
         description: "ID of cinema that needs to be updated"
@@ -217,6 +240,7 @@ paths:
       - kino_auth:
         - "read:cinema"
         - "write:cinema"
+      - api_key: []
     delete:
       tags:
       - "cinema"
@@ -226,6 +250,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - name: "api_key"
         in: "header"
         required: false
@@ -249,6 +277,7 @@ paths:
       - kino_auth:
         - "read:cinema"
         - "write:cinema"
+      - api_key: []
   /movie:
     post:
       tags:
@@ -261,6 +290,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - in: "body"
         name: "body"
         description: "Movie object that needs to be added to the database"
@@ -277,6 +310,7 @@ paths:
       security:
       - kino_auth:
         - "write:movie"
+      - api_key: []
     put:
       tags:
       - "movie"
@@ -288,6 +322,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - in: "body"
         name: "body"
         description: "Movie object that needs to be updated"
@@ -309,6 +347,7 @@ paths:
       - kino_auth:
         - "write:movie"
         - "read:movie"
+      - api_key: []
   /movie/findByTime:
     get:
       tags:
@@ -319,6 +358,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - name: "time"
         in: "query"
         description: "Start of time interval"
@@ -344,8 +387,7 @@ paths:
         401:
           description: "Unauthorized"
       security:
-      - kino_auth:
-        - "read:movie"
+      - api_key: []
   /movie/{movieId}:
     get:
       tags:
@@ -356,6 +398,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - name: "movieId"
         in: "path"
         description: "ID of movie to return"
@@ -374,8 +420,7 @@ paths:
         404:
           description: "Movie not found"
       security:
-      - kino_auth:
-        - "read:movie"
+      - api_key: []
     post:
       tags:
       - "movie"
@@ -387,6 +432,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - name: "movieId"
         in: "path"
         description: "ID of movie that needs to be updated"
@@ -432,12 +481,6 @@ paths:
         type: "number"
         format: "float"
         description: "IMDb rating, one decimal place"
-      - name: "posterThumbnail"
-        in: "formData"
-        required: false
-        type: "string"
-        format: "byte"
-        description: "base64 encoded image"
       - name: "posters"
         in: "formData"
         required: false
@@ -474,6 +517,7 @@ paths:
       - kino_auth:
         - "read:movie"
         - "write:movie"
+      - api_key: []
     delete:
       tags:
       - "movie"
@@ -483,9 +527,9 @@ paths:
       produces:
       - "application/json"
       parameters:
-      - name: "api_key"
+      - name: "apiKey"
         in: "header"
-        required: false
+        required: true
         type: "string"
       - name: "movieId"
         in: "path"
@@ -505,10 +549,11 @@ paths:
       security:
       - kino_auth:
         - "write:movie"
-  /movie/{movieId}/uploadPoster:
+      - api_key: []
+  /poster:
     post:
       tags:
-      - "movie"
+      - "poster"
       summary: "uploads an poster image"
       description: ""
       operationId: "uploadPoster"
@@ -517,15 +562,19 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - name: "movieId"
-        in: "path"
+        in: "formData"
         description: "ID of movie to assign poster to"
         required: true
         type: "integer"
         format: "int64"
-      - name: "additionalMetadata"
+      - name: "name"
         in: "formData"
-        description: "Additional data to pass to server"
+        description: "Poster name"
         required: false
         type: "string"
       - name: "file"
@@ -538,9 +587,195 @@ paths:
           description: "Success"
           schema:
             $ref: "#/definitions/ApiResponse"
+        401:
+          description: "Unauthorized"
       security:
       - kino_auth:
-        - "write:movie"
+        - "write:poster"
+      - api_key: []
+    put:
+      tags:
+      - "poster"
+      summary: "Update an existing poster"
+      description: ""
+      operationId: "updatePoster"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Poster object that needs to be updated"
+        required: true
+        schema:
+          $ref: "#/definitions/Poster"
+      responses:
+        200:
+          description: "Data updated"
+        400:
+          description: "Invalid ID supplied"
+        401:
+          description: "Unauthorized"
+        404:
+          description: "Poster not found"
+        405:
+          description: "Validation exception"
+      security:
+      - kino_auth:
+        - "write:poster"
+        - "read:poster"
+      - api_key: []
+  /poster/findByMovie:
+    get:
+      tags:
+      - "poster"
+      summary: "Find posters for a movie"
+      description: "Return all posters for a specified movie"
+      operationId: "findPostersByMovie"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
+      - name: "movieId"
+        in: "query"
+        description: "ID of movie"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "Success"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Poster"
+        401:
+          description: "Unauthorized"
+        404:
+          description: "Movie ID not found"
+      security:
+      - api_key: []
+  /poster/{posterId}:
+    get:
+      tags:
+      - "poster"
+      summary: "Find a poster by ID"
+      description: "Returns a single poster"
+      operationId: "getPosterById"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
+      - name: "posterId"
+        in: "path"
+        description: "ID of poster to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "Success"
+          schema:
+            $ref: "#/definitions/Poster"
+        400:
+          description: "Invalid ID supplied"
+        401:
+          description: "Unauthorized"
+        404:
+          description: "Poster not found"
+      security:
+      - api_key: []
+    post:
+      tags:
+      - "poster"
+      summary: "Update poster with form data"
+      description: ""
+      operationId: "uploadPosterWithForm"
+      consumes:
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
+      - name: "posterId"
+        in: "path"
+        description: "ID of poster to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      - name: "movieId"
+        in: "formData"
+        description: "ID of movie to assign poster to"
+        required: true
+        type: "integer"
+        format: "int64"
+      - name: "name"
+        in: "formData"
+        description: "Poster name"
+        required: false
+        type: "string"
+      - name: "file"
+        in: "formData"
+        description: "file to upload"
+        required: false
+        type: "file"
+      responses:
+        200:
+          description: "Success"
+          schema:
+            $ref: "#/definitions/ApiResponse"
+        401:
+          description: "Unauthorized"
+      security:
+      - kino_auth:
+        - "write:poster"
+      - api_key: []
+    delete:
+      tags:
+      - "poster"
+      summary: "Delete a poster"
+      description: ""
+      operationId: "deletePoster"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
+      - name: "posterId"
+        in: "path"
+        description: "Poster id to delete"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "Success"
+        400:
+          description: "Invalid ID supplied"
+        401:
+          description: "Unauthorized"
+        404:
+          description: "Poster not found"
+      security:
+      - kino_auth:
+        - "write:poster"
+      - api_key: []
   /projection:
     post:
       tags:
@@ -553,6 +788,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - in: "body"
         name: "body"
         description: "Projection object that needs to be added to the database"
@@ -569,6 +808,7 @@ paths:
       security:
       - kino_auth:
         - "write:projection"
+      - api_key: []
     put:
       tags:
       - "projection"
@@ -580,6 +820,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - in: "body"
         name: "body"
         description: "Projection object that needs to be updated"
@@ -601,6 +845,7 @@ paths:
       - kino_auth:
         - "write:projection"
         - "read:projection"
+      - api_key: []
   /projection/findByTime:
     get:
       tags:
@@ -611,6 +856,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - name: "time"
         in: "query"
         description: "Start of time interval"
@@ -636,8 +885,7 @@ paths:
         401:
           description: "Unauthorized"
       security:
-      - kino_auth:
-        - "read:projection"
+      - api_key: []
   /projection/{projectionId}:
     get:
       tags:
@@ -648,6 +896,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - name: "projectionId"
         in: "path"
         description: "ID of projection to return"
@@ -666,8 +918,7 @@ paths:
         404:
           description: "Projection not found"
       security:
-      - kino_auth:
-        - "read:projection"
+      - api_key: []
     post:
       tags:
       - "projection"
@@ -679,6 +930,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - name: "projectionId"
         in: "path"
         description: "ID of projection that needs to be updated"
@@ -729,6 +984,7 @@ paths:
       - kino_auth:
         - "read:projection"
         - "write:projection"
+      - api_key: []
     delete:
       tags:
       - "projection"
@@ -738,9 +994,9 @@ paths:
       produces:
       - "application/json"
       parameters:
-      - name: "api_key"
+      - name: "apiKey"
         in: "header"
-        required: false
+        required: true
         type: "string"
       - name: "projectionId"
         in: "path"
@@ -760,6 +1016,7 @@ paths:
       security:
       - kino_auth:
         - "write:projection"
+      - api_key: []
   /user:
     post:
       tags:
@@ -770,6 +1027,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - in: "body"
         name: "body"
         description: "Created user object"
@@ -777,8 +1038,14 @@ paths:
         schema:
           $ref: "#/definitions/User"
       responses:
-        default:
-          description: "successful operation"
+        401:
+          description: "Unauthorized"
+        200:
+          description: "Success"
+      security:
+      - kino_auth:
+        - "write:user"
+      - api_key: []
   /user/createWithArray:
     post:
       tags:
@@ -789,6 +1056,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - in: "body"
         name: "body"
         description: "List of user object"
@@ -798,25 +1069,37 @@ paths:
           items:
             $ref: "#/definitions/User"
       responses:
-        default:
-          description: "successful operation"
+        200:
+          description: "Success"
+        401:
+          description: "Unauthorized"
+      security:
+      - kino_auth:
+        - "write:user"
+      - api_key: []
   /user/login:
-    get:
+    post:
       tags:
       - "user"
       summary: "Logs user into the system"
       description: ""
       operationId: "loginUser"
+      consumes:
+      - "multipart/form-data"
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - name: "username"
-        in: "query"
+        in: "formData"
         description: "The user name for login"
         required: true
         type: "string"
       - name: "password"
-        in: "query"
+        in: "formData"
         description: "The password for login in clear text"
         required: true
         type: "string"
@@ -836,6 +1119,10 @@ paths:
               description: "date in UTC when token expires"
         400:
           description: "Invalid username/password supplied"
+        401:
+          description: "Unauthorized"
+      security:
+      - api_key: []
   /user/logout:
     get:
       tags:
@@ -845,10 +1132,20 @@ paths:
       operationId: "logoutUser"
       produces:
       - "application/json"
-      parameters: []
+      parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       responses:
-        default:
-          description: "successful operation"
+        200:
+          description: "Success"
+        401:
+          description: "Unauthorized"
+      security:
+      - kino_auth:
+        - "read:user"
+      - api_key: []
   /user/{username}:
     get:
       tags:
@@ -859,9 +1156,13 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - name: "username"
         in: "path"
-        description: "The name that needs to be fetched. Use user1 for testing. "
+        description: "The name that needs to be fetched"
         required: true
         type: "string"
       responses:
@@ -871,17 +1172,27 @@ paths:
             $ref: "#/definitions/User"
         400:
           description: "Invalid username supplied"
+        401:
+          description: "Unauthorized"
         404:
           description: "User not found"
+      security:
+      - kino_auth:
+        - "read:user"
+      - api_key: []
     put:
       tags:
       - "user"
-      summary: "Updated user"
+      summary: "Update user"
       description: "This can only be done by the logged in user."
       operationId: "updateUser"
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - name: "username"
         in: "path"
         description: "name that need to be updated"
@@ -896,8 +1207,14 @@ paths:
       responses:
         400:
           description: "Invalid user supplied"
+        401:
+          description: "Unauthorized"
         404:
           description: "User not found"
+      security:
+      - kino_auth:
+        - "write:user"
+      - api_key: []
     delete:
       tags:
       - "user"
@@ -907,6 +1224,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - name: "username"
         in: "path"
         description: "The name that needs to be deleted"
@@ -915,10 +1236,18 @@ paths:
       responses:
         400:
           description: "Invalid username supplied"
+        401:
+          description: "Unauthorized"
         404:
           description: "User not found"
+      security:
+      - kino_auth:
+        - "write:user"
+      - api_key: []
   /tracking/store:
     post:
+      tags:
+      - "tracking"
       summary: "store tracking values"
       description: ""
       operationId: "storeValues"
@@ -927,6 +1256,10 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "apiKey"
+        in: "header"
+        required: true
+        type: "string"
       - in: "body"
         name: "body"
         description: "List of tracking values"
@@ -940,6 +1273,8 @@ paths:
           description: "Success"
           schema:
             $ref: "#/definitions/ApiResponse"
+        401:
+          description: "Unauthorized"
       security:
       - api_key: []
 securityDefinitions:
@@ -954,33 +1289,15 @@ securityDefinitions:
       read:movie: "read movie list"
       write:projection: "update projection information"
       read:projection: "read projection list"
-      write:image: "upload image"
+      write:poster: "change poster"
+      read:poster: "download poster"
+      write:user: "update user information"
+      read:user: "read user information"
   api_key:
     type: "apiKey"
     name: "api_key"
     in: "header"
 definitions:
-  Image:
-    type: "object"
-    required:
-      - "name"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      name:
-        type: "string"
-      dataSize:
-        type: "integer"
-        format: "int32"
-        description: "data size in bytes"
-      data:
-        type: "string"
-        format: "byte"
-        description: "base64 encoded image data"
-      url:
-        type: "string"
-        description: "URL of the image file, optional"
   Cinema:
     type: "object"
     required:
@@ -1044,10 +1361,6 @@ definitions:
         type: "number"
         format: "float"
         description: "IMDb rating, one decimal place"
-      posterThumbnail:
-        type: "string"
-        format: "byte"
-        description: "base64 encoded image"
       posters:
         type: "array"
         items:
@@ -1066,6 +1379,31 @@ definitions:
         type: "integer"
         format: "int32"
         description: "movie length [minutes]"
+  Poster:
+    type: "object"
+    required:
+      - "name"
+      - "data"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      name:
+        type: "string"
+      width:
+        type: "integer"
+        format: "int32"
+      height:
+        type: "integer"
+        format: "int32"
+      dataSize:
+        type: "integer"
+        format: "int32"
+        description: "data size in bytes"
+      data:
+        type: "string"
+        format: "byte"
+        description: "base64 encoded image"
   Projection:
     type: "object"
     description: "movie projection info"
